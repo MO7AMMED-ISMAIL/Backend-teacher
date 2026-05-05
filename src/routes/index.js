@@ -2,13 +2,6 @@
 const express = require('express');
 const router  = express.Router();
 
-// health check endpoint
-router.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-// API routes
-
 router.use('/auth',     require('./authRoutes'));
 router.use('/teachers', require('./teacherRoutes'));
 router.use('/subjects',         require('./subjectRoutes'));
