@@ -11,6 +11,9 @@ const { notFound, errorHandler } = require('./middlewares/errorMiddleware');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
+
 // Security headers
 app.use(helmet());
 
@@ -31,7 +34,7 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV !== 'test') {
     app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 }
-app.set('trust proxy', 1);
+
 // Rate limiting on auth routes (brute-force protection)
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
