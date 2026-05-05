@@ -2,6 +2,13 @@
 const express = require('express');
 const router  = express.Router();
 
+// health check endpoint
+router.get('/health', (req, res) => {
+    res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+// API routes
+
 router.use('/auth',     require('./authRoutes'));
 router.use('/teachers', require('./teacherRoutes'));
 router.use('/subjects',         require('./subjectRoutes'));
@@ -13,10 +20,5 @@ router.use('/attendance', require('./attendanceRoutes'));
 router.use('/dashboard',       require('./dashboardRoutes'));
 router.use('/admin/dashboard', require('./adminDashboardRoutes'));
 
-// Add more routes here as you build:
-// router.use('/users',       require('./userRoutes'));
-// router.use('/students',    require('./studentRoutes'));
-// router.use('/classes',     require('./classRoutes'));
-// router.use('/assignments', require('./assignmentRoutes'));
 
 module.exports = router;
