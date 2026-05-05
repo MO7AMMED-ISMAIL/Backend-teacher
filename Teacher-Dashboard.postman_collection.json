@@ -1,0 +1,780 @@
+{
+  "info": {
+    "name": "Teacher Dashboard API",
+    "description": "Full collection for the teacher-backend API.\n\n**Usage**\n1. Start the backend (`npm run dev`) — default `http://localhost:5000`.\n2. Run **Auth > Create First Admin** (works only once).\n3. Run **Auth > Dashboard Login** with the same email/password. The token is auto-saved to the `{{token}}` collection variable.\n4. All protected requests use `Authorization: Bearer {{token}}` via collection-level auth.\n5. Resources auto-save their `_id` to collection variables when created (`{{teacherId}}`, `{{subjectId}}`, `{{studentId}}`, `{{scheduleId}}`, `{{attendanceId}}`).\n\n**Workflow**\n- Admin → create Teacher → create Subject (assign to teacher).\n- Login as the teacher (same Dashboard Login endpoint, with teacher creds).\n- Teacher → create Student, create Schedule, submit Attendance.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "6b4a2e21-5c4d-4b64-9b58-td-dashboard-001"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{token}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "baseUrl",        "value": "http://localhost:5000/api", "type": "string" },
+    { "key": "token",          "value": "",                          "type": "string" },
+    { "key": "teacherId",      "value": "",                          "type": "string" },
+    { "key": "subjectId",      "value": "",                          "type": "string" },
+    { "key": "studentId",      "value": "",                          "type": "string" },
+    { "key": "scheduleId",     "value": "",                          "type": "string" },
+    { "key": "attendanceId",   "value": "",                          "type": "string" },
+    { "key": "adminEmail",     "value": "admin@school.com",          "type": "string" },
+    { "key": "adminPassword",  "value": "admin123",                  "type": "string" },
+    { "key": "teacherEmail",   "value": "ahmed@school.com",          "type": "string" },
+    { "key": "teacherPassword","value": "teacher123",                "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "5000",
+          "path": ["health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Create First Admin (one-time)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.token) {",
+                  "    pm.collectionVariables.set('token', res.token);",
+                  "    console.log('Saved admin token to {{token}}');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Super Admin\",\n    \"email\": \"{{adminEmail}}\",\n    \"password\": \"{{adminPassword}}\",\n    \"phone\": \"+201000000000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/create-admin",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "create-admin"]
+            },
+            "description": "Creates the first admin account. Fails with 409 if an admin already exists in the database."
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard Login (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.token) {",
+                  "    pm.collectionVariables.set('token', res.token);",
+                  "    console.log('Saved admin token to {{token}}');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{adminEmail}}\",\n    \"password\": \"{{adminPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/dashboard/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "dashboard", "login"]
+            },
+            "description": "Login as admin (7-day token)."
+          },
+          "response": []
+        },
+        {
+          "name": "Dashboard Login (teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.token) {",
+                  "    pm.collectionVariables.set('token', res.token);",
+                  "    console.log('Saved teacher token to {{token}}');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"{{teacherEmail}}\",\n    \"password\": \"{{teacherPassword}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/dashboard/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "dashboard", "login"]
+            },
+            "description": "Login as teacher (7-day token). Use this token for all Student / Schedule / Attendance / Dashboard endpoints."
+          },
+          "response": []
+        },
+        {
+          "name": "Mobile Login (student / teacher)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.token) {",
+                  "    pm.collectionVariables.set('token', res.token);",
+                  "    console.log('Saved mobile token to {{token}}');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"student@school.com\",\n    \"password\": \"secret123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/mobile/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "mobile", "login"]
+            },
+            "description": "Login for student and teacher roles (30-day token). Admins are rejected."
+          },
+          "response": []
+        },
+        {
+          "name": "Register (admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"New Student\",\n    \"email\": \"student1@school.com\",\n    \"password\": \"secret123\",\n    \"role\": \"student\",\n    \"grade\": \"Grade 10\",\n    \"studentId\": \"STU-001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Generic user registration. Requires admin token. For teachers prefer **Teachers > Create Teacher**."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            },
+            "description": "Returns the currently authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            },
+            "description": "Stateless logout — client should discard the token locally."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Teachers (admin only)",
+      "item": [
+        {
+          "name": "List Teachers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/teachers?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["teachers"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Teacher",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data._id) {",
+                  "    pm.collectionVariables.set('teacherId', res.data._id);",
+                  "    console.log('Saved teacherId = ' + res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Ahmed Hassan\",\n    \"email\": \"{{teacherEmail}}\",\n    \"password\": \"{{teacherPassword}}\",\n    \"subject\": \"Mathematics\",\n    \"phone\": \"+201111111111\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teachers",
+              "host": ["{{baseUrl}}"],
+              "path": ["teachers"]
+            },
+            "description": "Required: name, email, password (min 6 + digit), subject. Saves new `_id` to `{{teacherId}}`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Teacher by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/teachers/{{teacherId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["teachers", "{{teacherId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Teacher",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Ahmed Hassan (updated)\",\n    \"subject\": \"Advanced Mathematics\",\n    \"phone\": \"+201222222222\",\n    \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/teachers/{{teacherId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["teachers", "{{teacherId}}"]
+            },
+            "description": "Any subset of: name, email, password, subject, phone, isActive. Omit `password` to keep the existing one."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Teacher",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/teachers/{{teacherId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["teachers", "{{teacherId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Subjects",
+      "description": "Admin can create / update / delete. Both admin and teacher can list and view (teachers see only their own).",
+      "item": [
+        {
+          "name": "List Subjects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subjects?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["subjects"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "", "disabled": true },
+                { "key": "teacher", "value": "{{teacherId}}", "disabled": true }
+              ]
+            },
+            "description": "Admin sees all subjects (filter by `teacher` query param). Teacher sees only their own."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Subject (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data._id) {",
+                  "    pm.collectionVariables.set('subjectId', res.data._id);",
+                  "    console.log('Saved subjectId = ' + res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"الرياضيات\",\n    \"teacher\": \"{{teacherId}}\",\n    \"description\": \"مادة الرياضيات للصف الثالث\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subjects",
+              "host": ["{{baseUrl}}"],
+              "path": ["subjects"]
+            },
+            "description": "Admin only. Required: name (2-100), teacher (valid teacher User _id). Saves `_id` to `{{subjectId}}`."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Subject by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subjects/{{subjectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["subjects", "{{subjectId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Subject (admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"الرياضيات المتقدمة\",\n    \"description\": \"مادة محدّثة\",\n    \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/subjects/{{subjectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["subjects", "{{subjectId}}"]
+            },
+            "description": "Admin only. Any subset of: name, teacher, description, isActive."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Subject (admin, soft-delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/subjects/{{subjectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["subjects", "{{subjectId}}"]
+            },
+            "description": "Soft-delete (sets isActive: false). Historical data is preserved."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Students (teacher only)",
+      "description": "All endpoints require a teacher token. Teachers can only see and manage their own students. `studentNumber` is auto-generated as a unique 6-digit number on creation.",
+      "item": [
+        {
+          "name": "List Students",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/students?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["students"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "", "disabled": true, "description": "Searches fullName + studentNumber" },
+                { "key": "subject", "value": "{{subjectId}}", "disabled": true }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Student",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data._id) {",
+                  "    pm.collectionVariables.set('studentId', res.data._id);",
+                  "    console.log('Saved studentId = ' + res.data._id + ' (number: ' + res.data.studentNumber + ')');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fullName\": \"سارة أحمد\",\n    \"address\": \"شارع الملك فهد، الرياض\",\n    \"phone\": \"0501234567\",\n    \"parentPhone\": \"0507654321\",\n    \"subjects\": [\"{{subjectId}}\"],\n    \"notes\": \"طالبة متفوقة\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/students",
+              "host": ["{{baseUrl}}"],
+              "path": ["students"]
+            },
+            "description": "Teacher field is auto-set from the auth token. `studentNumber` is auto-generated (6-digit unique). Returns the created student with its assigned number."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/students/{{studentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["students", "{{studentId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Student",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"fullName\": \"سارة أحمد محمد\",\n    \"address\": \"عنوان جديد\",\n    \"phone\": \"0501112222\",\n    \"parentPhone\": \"0503334444\",\n    \"subjects\": [\"{{subjectId}}\"],\n    \"notes\": \"تم تحديث الملاحظات\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/students/{{studentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["students", "{{studentId}}"]
+            },
+            "description": "Any subset of: fullName, address, phone, parentPhone, subjects, notes, isActive. `studentNumber` cannot be changed."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Student (soft-delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/students/{{studentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["students", "{{studentId}}"]
+            },
+            "description": "Soft-delete (sets isActive: false). Historical attendance records are preserved."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Schedules (teacher only)",
+      "description": "Weekly recurring class sessions. Server warns on time overlaps but still saves.",
+      "item": [
+        {
+          "name": "List Schedules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules"],
+              "query": [
+                { "key": "dayOfWeek", "value": "0", "disabled": true, "description": "Optional: 0 (Sunday) to 6 (Saturday)" }
+              ]
+            },
+            "description": "Returns all of the authenticated teacher's schedule entries, sorted by day then start time. No pagination."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Schedule",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data._id) {",
+                  "    pm.collectionVariables.set('scheduleId', res.data._id);",
+                  "    console.log('Saved scheduleId = ' + res.data._id);",
+                  "}",
+                  "if (res && res.warnings && res.warnings.length) {",
+                  "    console.warn('Schedule overlap warnings:', res.warnings);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"subject\": \"{{subjectId}}\",\n    \"dayOfWeek\": 0,\n    \"startTime\": \"08:00\",\n    \"endTime\": \"09:30\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schedules",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules"]
+            },
+            "description": "Required: subject (must belong to this teacher), dayOfWeek (0-6, 0=Sunday), startTime (HH:mm), endTime (HH:mm, after start). If overlapping with another active schedule, the response includes `warnings` but the entry is still saved."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Schedule by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules/{{scheduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules", "{{scheduleId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Schedule",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"startTime\": \"09:00\",\n    \"endTime\": \"10:30\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/schedules/{{scheduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules", "{{scheduleId}}"]
+            },
+            "description": "Any subset of: subject, dayOfWeek, startTime, endTime, isActive. Overlap check runs again."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Schedule",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/schedules/{{scheduleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["schedules", "{{scheduleId}}"]
+            },
+            "description": "Hard delete."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Attendance (teacher only)",
+      "description": "One attendance record per (subject, date). Submit performs an upsert — re-submitting for the same subject + date updates the existing record.",
+      "item": [
+        {
+          "name": "Submit Attendance (upsert)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res && res.data && res.data._id) {",
+                  "    pm.collectionVariables.set('attendanceId', res.data._id);",
+                  "    console.log('Saved attendanceId = ' + res.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"subject\": \"{{subjectId}}\",\n    \"date\": \"2026-04-30\",\n    \"records\": [\n        { \"student\": \"{{studentId}}\", \"status\": \"present\" }\n    ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/attendance",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance"]
+            },
+            "description": "201 on first save, 200 on update. status must be one of: present, absent, late."
+          },
+          "response": []
+        },
+        {
+          "name": "List Attendance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance?page=1&limit=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance"],
+              "query": [
+                { "key": "page",    "value": "1" },
+                { "key": "limit",   "value": "10" },
+                { "key": "subject", "value": "{{subjectId}}", "disabled": true },
+                { "key": "from",    "value": "2026-04-01",     "disabled": true },
+                { "key": "to",      "value": "2026-04-30",     "disabled": true }
+              ]
+            },
+            "description": "Returns attendance sessions sorted by date desc with a per-session summary (`{ total, present, absent, late }`)."
+          },
+          "response": []
+        },
+        {
+          "name": "Attendance Summary (per-student)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/summary?subject={{subjectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "summary"],
+              "query": [
+                { "key": "subject", "value": "{{subjectId}}" }
+              ]
+            },
+            "description": "Returns per-student attendance counts and percentage rate for the given subject."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attendance by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/attendance/{{attendanceId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["attendance", "{{attendanceId}}"]
+            },
+            "description": "Returns the full record with each student's status (populates fullName + studentNumber)."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard (teacher only)",
+      "item": [
+        {
+          "name": "Get Teacher Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/teacher",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard", "teacher"]
+            },
+            "description": "Aggregated stats for the authenticated teacher: totalStudents, totalSubjects, todayClasses, overallAttendanceRate, recentAttendance (last 5)."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
