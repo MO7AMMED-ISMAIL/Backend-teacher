@@ -7,10 +7,22 @@ if (!cached) {
 }
 
 const connectDB = async () => {
-    if (cached.conn) return cached.conn;
+    if (cached.conn) {
+        // Check if connection is still alive
+        if (cached.conn.connection.readyState === 1) return cached.conn;
+        // Reset if disconnected
+        cached.conn = null;
+        cached.promise = null;
+    }
 
     if (!cached.promise) {
-        cached.promise = mongoose.connect(process.env.MONGO_URL_DEVELOPMENT).then((mongoose) => {
+        cached.promise = mongoose.connect(process.env.MONGO_URL_DEVELOPMENT, {
+            bufferCommands: false,          // Don't queue ops when disconnected
+            serverSelectionTimeoutMS: 10000,
+            socketTimeoutMS: 45000,
+            connectTimeoutMS: 10000,
+            maxPoolSize: 10,
+        }).then((mongoose) => {
             console.log('✅ MongoDB connected');
             return mongoose;
         });
