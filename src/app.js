@@ -4,7 +4,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
-const connectDB = require('./config/db');
 
 
 const routes = require('./routes');
@@ -12,25 +11,13 @@ const { notFound, errorHandler } = require('./middlewares/errorMiddleware');
 
 const app = express();
 
-// Database connection middleware for Serverless
-app.use(async (req, res, next) => {
-    try {
-        await connectDB();
-        next();
-    } catch (err) {
-        next(err);
-    }
-});
-
-app.set('trust proxy', 1);
-
 
 // Security headers
 app.use(helmet());
 
 // CORS
 app.use(cors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || "*",
+    origin: process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || '*',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
