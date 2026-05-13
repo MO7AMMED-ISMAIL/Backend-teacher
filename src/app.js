@@ -16,6 +16,12 @@ const app = express();
 app.use(helmet());
 
 // CORS
+app.options('*', cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(cors({
     origin: '*',//process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) 
     // credentials: true,
